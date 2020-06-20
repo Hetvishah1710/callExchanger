@@ -1,16 +1,11 @@
 %%%-------------------------------------------------------------------
 %%% @author Hetvi Shah
+%%% @copyright (C) 2020, <COMPANY>
 %%% @doc
 %%%
-%%% This is the main file of the program which would register the
-%%% processes, and those processes would talk with each other to send
-%%% and get replies from each other.
-%%% If at the end there is no reply from any processes for 10 seconds
-%%% program will timeout and terminate itself.
-%%%
 %%% @end
+%%% Created : 18. Jun 2020 8:21 PM
 %%%-------------------------------------------------------------------
-
 -module(exchange).
 -author("Hetvi Shah").
 
@@ -35,7 +30,7 @@
 %% @end
 %%------------------------------------------------------------------------------
 startProcess(Module, ProcessName, Name) ->
-    spawn(Module, ProcessName, [Name]).
+  spawn(Module, ProcessName, [Name]).
 
 %%------------------------------------------------------------------------------
 %% @doc
@@ -46,7 +41,7 @@ startProcess(Module, ProcessName, Name) ->
 %% @end
 %%------------------------------------------------------------------------------
 exchangeStart(C) ->
-  [[element(1, X) ! {asking, Y} || Y <- element(2, X)] || X <- C].
+  [[element(1, X) ! {asking, Y, element(3, erlang:now())} || Y <- element(2, X)] || X <- C].
 
 
 %%------------------------------------------------------------------------------
@@ -58,11 +53,11 @@ exchangeStart(C) ->
 displayMessagesOnMain() ->
   timer:sleep(rand:uniform(?RANDOM_SLEEP_MAX)),
   receive
-    {intro, Sender, Receiver} ->
-      io:format("~p recived intro message from ~p [~p] ~n", [Sender, Receiver, element(3, erlang:now())]),
+    {intro, Sender, Receiver, Time} ->
+      io:format("~p recived intro message from ~p [~p] ~n", [Sender, Receiver, Time]),
       displayMessagesOnMain();
-    {reply, Sender, Receiver} ->
-      io:format("~p recived reply message from ~p [~p] ~n", [Sender, Receiver, element(3, erlang:now())]),
+    {reply, Sender, Receiver, Time} ->
+      io:format("~p recived reply message from ~p [~p] ~n", [Sender, Receiver, Time]),
       displayMessagesOnMain();
     {endProcess, Processname} ->
       io:format("~nProcess ~p has recieved no calls for 5 seconds, ending ... ~n", [Processname]),
@@ -84,6 +79,7 @@ start() ->
   {ok, C} = file:consult("./calls.txt"),
   io:format(" ** Calls to be made ** ~n"),
   [io:format("~p: ~p ~n", [element(1,X),element(2,X)]) || X <- C],
+  io:format("~n"),
   [register(element(1, X), startProcess(calling, exchangeCalls, element(1, X))) || X <- C],
   exchangeStart(C),
   displayMessagesOnMain().

@@ -1,11 +1,11 @@
 %%%-------------------------------------------------------------------
 %%% @author Hetvi Shah
+%%% @copyright (C) 2020, <COMPANY>
 %%% @doc
-%%% This is the calling module which one will be responsible for
-%%% processing requests from each process.
+%%%
 %%% @end
+%%% Created : 18. Jun 2020 8:22 PM
 %%%-------------------------------------------------------------------
-
 -module(calling).
 -author("Hetvi Shah").
 
@@ -46,12 +46,12 @@ displayMessageProcess() ->
 %%------------------------------------------------------------------------------
 exchangeCalls(Name) ->
   receive
-    {asking, Sender} ->
-      displayMessageProcess() ! {intro, Name, Sender},
-      Sender ! {reply, Name},
+    {asking, Sender, Time} ->
+      displayMessageProcess() ! {intro, Name, Sender, Time},
+      Sender ! {reply, Name, Time},
       exchangeCalls(Name);
-    {reply, Sender} ->
-      displayMessageProcess() ! {reply, Name, Sender},
+    {reply, Sender, Time} ->
+      displayMessageProcess() ! {reply, Name, Sender, Time},
       exchangeCalls(Name)
   after ?PROCESS_TIMEOUT ->
     displayMessageProcess() ! {endProcess, Name}

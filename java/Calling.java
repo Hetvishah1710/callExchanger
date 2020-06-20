@@ -57,6 +57,7 @@ public class Calling
             File file = new File(path.toURI());
             BufferedReader reader = new BufferedReader(new FileReader(file));
             String line;
+            System.out.println("** Calls to be made ***");
             while ((line = reader.readLine()) != null)
             {
                 String[] parts = line.split(",", 2);
@@ -69,6 +70,7 @@ public class Calling
                             .replace(" ", "");
                     String[] str = value.split(",");
                     List<String> listValue = new LinkedList<>(Arrays.asList(str));
+                    System.out.println(key + " " + listValue);
                     setCallingMap(key, listValue);
                 }
             }
@@ -96,11 +98,6 @@ public class Calling
     //--------------------------------------------------------
     public void showCallingMap()
     {
-        System.out.println("** Calls to be made ***");
-        for (String key : callingMap.keySet())
-        {
-            System.out.println(key + " " + callingMap.get(key));
-        }
         System.out.println("");
     }
 
@@ -142,7 +139,8 @@ public class Calling
                     if (Exchange.callingRequestQueue.size() < 1)
                     {
                         List<String> callingList = callingMap.get(name);
-                        Exchange.callingRequestQueue.add(name + " " + callingList.get(0));
+                        long time = System.currentTimeMillis();
+                        Exchange.callingRequestQueue.add(name + " " + callingList.get(0) + " " + time);
                         callingList.remove(callingList.get(0));
                         if (callingList.size() == 0)
                         {
@@ -163,15 +161,11 @@ public class Calling
                 {
                     if (Exchange.callingResponseQueue.peek() != null)
                     {
-                        String[] response = Exchange.callingResponseQueue.peek().split(" ", 2);
+                        String[] response = Exchange.callingResponseQueue.peek().split(" ", 3);
                         if (name.equals(response[0]))
                         {
-                            Exchange.getMessageOnMainThread(response[0], response[1], Exchange.ShowRequest.REPLY, ThreadLocalRandom.current().nextInt(1, 100));
+                            Exchange.getMessageOnMainThread(response[0], response[1], Exchange.ShowRequest.REPLY, ThreadLocalRandom.current().nextInt(1, 100), Long.parseLong(response[2]));
                             Exchange.callingResponseQueue.remove();
-                            if (callingMap.get(name) == null)
-                            {
-                                shouldRun = false;
-                            }
                         }
                         try
                         {
@@ -209,7 +203,7 @@ public class Calling
         @Override
         public void run()
         {
-            Exchange.getMessageOnMainThread(name ,"", Exchange.ShowRequest.PROCESS_END, ThreadLocalRandom.current().nextInt(1, 100));
+            Exchange.getMessageOnMainThread(name ,"", Exchange.ShowRequest.PROCESS_END, ThreadLocalRandom.current().nextInt(1, 100), 0);
         }
     }
 }

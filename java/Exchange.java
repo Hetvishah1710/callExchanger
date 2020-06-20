@@ -113,9 +113,9 @@ public class Exchange
                 {
                     if (callingRequestQueue.peek() != null)
                     {
-                        String[] callingRequestData = callingRequestQueue.peek().split(" ", 2);
-                        getMessageOnMainThread(callingRequestData[0], callingRequestData[1], ShowRequest.INTRO, ThreadLocalRandom.current().nextInt(1, 100));
-                        callingResponseQueue.add(callingRequestData[1] + " " + callingRequestData[0]);
+                        String[] callingRequestData = callingRequestQueue.peek().split(" ", 3);
+                        getMessageOnMainThread(callingRequestData[0], callingRequestData[1], ShowRequest.INTRO, ThreadLocalRandom.current().nextInt(1, 100), Long.parseLong(callingRequestData[2]));
+                        callingResponseQueue.add(callingRequestData[1] + " " + callingRequestData[0] + " " + callingRequestData[2]);
                     }
                     callingRequestQueue.remove();
                 }
@@ -138,12 +138,14 @@ public class Exchange
         private String sender;
         private String receiver;
         private ShowRequest request;
+        private long sendTime;
 
-        private DisplayMessage(String sender, String receiver, ShowRequest request)
+        private DisplayMessage(String sender, String receiver, ShowRequest request, long sendTime)
         {
             this.sender   = sender;
             this.receiver = receiver;
             this.request  = request;
+            this.sendTime = sendTime;
         }
 
         @Override
@@ -152,10 +154,10 @@ public class Exchange
             switch (request)
             {
                 case INTRO:
-                    System.out.println(receiver + " received intro message from " + sender + " [" + System.currentTimeMillis() + "]");
+                    System.out.println(receiver + " received intro message from " + sender + " [" + sendTime + "]");
                     break;
                 case REPLY:
-                    System.out.println(receiver + " received reply message from " + sender + " [" + System.currentTimeMillis() + "]");
+                    System.out.println(receiver + " received reply message from " + sender + " [" + sendTime + "]");
                     break;
                 case PROCESS_END:
                     System.out.printf("%n Process " + sender + " has received no calls from 5 seconds, ending...%n");
@@ -172,9 +174,9 @@ public class Exchange
      * Schedule task to print the output to console
      */
     //--------------------------------------------------------
-    public static void getMessageOnMainThread(String sender, String receiver, ShowRequest request, int time)
+    public static void getMessageOnMainThread(String sender, String receiver, ShowRequest request, int time, long sendTime)
     {
-        DisplayMessage displayMessage = new DisplayMessage(sender, receiver, request);
+        DisplayMessage displayMessage = new DisplayMessage(sender, receiver, request, sendTime);
         timer.schedule(displayMessage, time);
     }
 
@@ -193,7 +195,7 @@ public class Exchange
         @Override
         public void run()
         {
-            getMessageOnMainThread(" "," ", ShowRequest.MAIN_END, 10);
+            getMessageOnMainThread(" "," ", ShowRequest.MAIN_END, 10, 0);
         }
     }
 }
